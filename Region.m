@@ -87,14 +87,14 @@ classdef Region
 
                     % If on the first row of data, copy the cell longitude
                     % values into the overall longitude vector
-                    if i == 1
+                    if i == min(dataRows)
                         longs(sampleSize*(j-1) + 1 : sampleSize*j) ...
                             = cellLongs(1:inputs.sampleFactor:size(cellLongs,2));
                     end
                     
                     % If on the first column of data, copy the cell 
                     % latitude values into the overall latitude vector
-                    if j == 1
+                    if j == min(dataCols)
                         lats(sampleSize*(i-1) + 1 : sampleSize*i) ...
                             = fliplr(cellLats(1:inputs.sampleFactor:size(cellLats,2)));
                     end
