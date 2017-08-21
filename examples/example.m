@@ -1,7 +1,8 @@
+addpath('../')
+
 % Download the USGS 1/3 arc-second data covering northwestern Wyoming, from
 % 42.5 to 45 latitude and from -111.05 to -108.6 longitude
 region = fetchregion([42.5, 45], [-111.05, -108.6], 'display', true);
-
                            
 % Read the elevation data for Yellowstone National Park (the indicated
 % latitude and longitude range), sampling at 1/20th of the maximum
@@ -10,6 +11,8 @@ yellowstoneElevData = region.readelevation([44.255813, 44.649888], ...
                                            [-110.861772, -110.183366], ...
                                            'sampleFactor', 20, ...                                
                                            'display', true);
+
+                                       
 % Graph the elevation data for Yellowstone, using latitude and longitude
 % for the x and y coordinates
 dispelev(yellowstoneElevData, 'mode', 'latlong');
