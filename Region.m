@@ -62,7 +62,7 @@ classdef Region
                     try
                         [e, R] = arcgridread(char(inputs.obj.fltDataFiles(i, j)));
                     catch
-                        error('Unable to read elevation data. Make sure that the specified lat/long range lies inside the region.');
+                        error('Unable to read elevation data. Make sure that the mapping toolbox is installed and specified lat/long range lies inside the region.');
                     end
                     
                     % Sample the elevation data
