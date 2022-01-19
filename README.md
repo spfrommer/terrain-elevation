@@ -11,11 +11,11 @@ This library works in all of the mainland United States, Hawaii, and most of Ala
 region = fetchregion([42.5, 45], [-111.05, -108.6], 'display', true);
                            
 % Read the elevation data for Yellowstone National Park (the indicated
-% latitude and longitude range), sampling at 1/20th of the maximum
-% resolution (i.e., 6 arc-seconds).
+% latitude and longitude range), sampling at 1/5th of the maximum
+% resolution (i.e., 5 arc-seconds).
 yellowstoneElevData = region.readelevation([44.255813, 44.649888], ...
                                            [-110.861772, -110.183366], ...
-                                           'sampleFactor', 20, ...                                
+                                           'sampleFactor', 5, ...
                                            'display', true);
 % Graph the elevation data for Yellowstone, using latitude and longitude
 % for the x and y coordinates
