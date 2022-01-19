@@ -25,10 +25,8 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
     % data, probably due to different data sets being published at
     % different times. If a third URL format exists that I missed please
     % let me know.
-    URL_FORMAT1 = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/GridFloat/USGS_NED_13_n%dw%03d_GridFloat.zip';
-    URL_FORMAT2 = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/GridFloat/n%dw%03d.zip';
-    DATAFILE_FORMAT1 = '/usgs_ned_13_n%dw%03d_gridfloat.flt';
-    DATAFILE_FORMAT2 = '/floatn%dw%03d_13.flt';
+    URL_FORMAT =  'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/GridFloat/USGS_NED_1_n%dw%03d_GridFloat.zip';
+    DATAFILE_FORMAT = '/usgs_ned_1_n%dw%03d_gridfloat.flt';
     
     [lats, longs] = rangeparse(inputs.latRange, inputs.longRange);
     
@@ -58,15 +56,11 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
                 % Download the zipped files from the USGS server, trying
                 % both possible formats
                 try
-                    websave(zipFile, sprintf(URL_FORMAT1, lat, abs(long)));
+                    websave(zipFile, sprintf(URL_FORMAT, lat, abs(long)));
                 catch
-                    try
-                        websave(zipFile, sprintf(URL_FORMAT2, lat, abs(long)));
-                    catch
-                        delete(zipFile);
-                        error('No data available for area n%dw%03d.', ...
-                                      lat, abs(long));
-                    end
+                    delete(zipFile);
+                    error('No data available for area n%dw%03d.', ...
+                                  lat, abs(long));
                 end
                 
                 % Extract the zip file
@@ -87,14 +81,10 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
             
             % Copy the path to the raw data file into the appropriate
             % location in the region array
-            dataFile1 = strcat(unzipDir, sprintf(DATAFILE_FORMAT1, lat, abs(long)));
-            dataFile2 = strcat(unzipDir, sprintf(DATAFILE_FORMAT2, lat, abs(long)));
-            if exist(dataFile1, 'file')
+            dataFile = strcat(unzipDir, sprintf(DATAFILE_FORMAT, lat, abs(long)));
+            if exist(dataFile, 'file')
                 region.fltDataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
-                                    abs(long) + 1) = {dataFile1};
-            elseif exist(dataFile2, 'file')
-                region.fltDataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
-                                    abs(long) + 1) = {dataFile2};
+                                    abs(long) + 1) = {dataFile};
             else
                 error('Could not locate gridfloat data in USGS download.');
             end
