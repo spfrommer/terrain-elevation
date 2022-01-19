@@ -6,13 +6,15 @@ function [] = dispelev( elevData, varargin )
 %   additional properties. The mode property affects the
 %   axes units; 'latlong' units will use latitude and longitude for the x
 %   and y axes (degrees) while 'cartesian' will use meters and scale the z 
-%   limits accordingly (default latlong). The gridLines property specifies
-%   the gridLine density (default 100 grid lines). Note that due to
-%   discretization the actual number of grid lines will usually differ
+%   limits accordingly (default latlong). If 'truez' is true in cartesian mode,
+%   the z axis will be scaled to be proportional to the x and y axes.
+%   The gridLines property specifies the gridLine density (default 100 grid lines).
+%   Note that due to discretization the actual number of grid lines will usually differ
 %   slightly from the specified value.
     p = inputParser;
     p.addRequired('elevData', @(x) isa(x, 'ElevationData'));
     p.addParameter('mode', 'latlong', @isstr);
+    p.addParameter('truez', false, @(x) isa(x, 'logical'));
     p.addParameter('gridLines', 100, @(x) floor(x) == x && x > 0);
     p.parse(elevData, varargin{:});
     inputs = p.Results;
@@ -49,13 +51,18 @@ function [] = dispelev( elevData, varargin )
              'LineStyle', '-', 'FaceAlpha', 0, 'MeshStyle', 'column');
         
         % Set axes bounds and labels
-        axis([minX, minX + axBound, minY, minY + axBound, ...
-              minElev, minElev + axBound]);
+        if inputs.truez
+            axis([minX, minX + axBound, minY, minY + axBound, minElev, minElev + axBound]);
+        else
+            maxElev = minElev + (max(elevData.elev(:)) - minElev) * 2;
+            axis([minX, minX + axBound, minY, minY + axBound, minElev, maxElev]);
+        end
         xlabel('X Distance (meters)');
         ylabel('Y Distance (meters)');
         zlabel('Elevation (meters)');
-        
+
         hold off;
+        view([-37.5 70])
     elseif strcmp(inputs.mode, 'latlong')
         % Graph the elevation data without gridlines
         figure();
@@ -77,7 +84,10 @@ function [] = dispelev( elevData, varargin )
         xlabel('Longitude (degrees)');
         ylabel('Latitude (degrees)');
         zlabel('Elevation (meters)');
-        
+
         hold off;
+        view([-37.5 70])
+    else
+        disp('Render mode not recognized.');
     end
 end

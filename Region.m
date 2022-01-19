@@ -36,7 +36,8 @@ classdef Region
             p.parse(obj, latRange, longRange, varargin{:});
             inputs = p.Results;
             
-            RASTER_SIZE = 10812;
+            % 1 arc-second resolution = 3612 arc-secs per degree (in data file)
+            RASTER_SIZE = 3612;
             
             [cellLats, cellLongs] = rangeparse(inputs.latRange, ...
                                                inputs.longRange);

@@ -1,12 +1,12 @@
 ## Terrain Elevation
-An easy-to-use MATLAB library for working with terrain elevation from the USGS in 1/3 arc-second resolution. Supports automatic download and synthesization of multiple 1x1 degree cells, elevation data sampling, easy conversion from latitude/longitude to cartesian coordinates, and terrain visualization.
+An easy-to-use MATLAB library for working with terrain elevation from the USGS in 1 arc-second resolution. Supports automatic download and synthesization of multiple 1x1 degree cells, elevation data sampling, easy conversion from latitude/longitude to cartesian coordinates, and terrain visualization.
 
 This library works in all of the mainland United States, Hawaii, and most of Alaska. It depends on the MATLAB Mapping Toolbox.
 
 ### Example usage (from example.m)
 
 ```
-% Download the USGS 1/3 arc-second data covering northwestern Wyoming, from
+% Download the USGS 1 arc-second data covering northwestern Wyoming, from
 % 42.5 to 45 latitude and from -111.05 to -108.6 longitude
 region = fetchregion([42.5, 45], [-111.05, -108.6], 'display', true);
                            
@@ -22,7 +22,7 @@ yellowstoneElevData = region.readelevation([44.255813, 44.649888], ...
 dispelev(yellowstoneElevData, 'mode', 'latlong');
 
 % Read the elevation data for the Jackson Hole resort (the indicated
-% latitude and longitude range), sampling all data points (1/3 arc-seconds)
+% latitude and longitude range), sampling all data points (1 arc-seconds)
 jacksonElevData = region.readelevation([43.450467, 43.546597], ...
                                        [-110.837225, -110.732854], ...
                                        'SampleFactor', 1, ...
@@ -33,7 +33,7 @@ dispelev(jacksonElevData, 'mode', 'cartesian', 'gridLines', 50);
 ```
 
 ### MIT License
-Copyright (c) 2017 Samuel Pfrommer
+Copyright (c) 2022 Samuel Pfrommer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

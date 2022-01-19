@@ -21,12 +21,21 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
     p.parse(latRange, longRange, varargin{:});
     inputs = p.Results;
     
-    % There are two URL formats for accessing USGS 1/3 arc-second GridFloat 
-    % data, probably due to different data sets being published at
-    % different times. If a third URL format exists that I missed please
-    % let me know.
-    URL_FORMAT =  'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/GridFloat/USGS_NED_1_n%dw%03d_GridFloat.zip';
-    DATAFILE_FORMAT = '/usgs_ned_1_n%dw%03d_gridfloat.flt';
+    % URLs for accessing USGS 1 arc-second GridFloat data, root directory here:
+    % https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/1/GridFloat/
+    %
+    % There are two URL formats for accessing USGS 1 arc-second GridFloat data, probably due 
+    % to different data sets being published at different times.
+    %
+    % 1/3 arc-second data is available in TIFF format here:
+    % https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/13/TIFF/current/
+    % Unfortunately, geotiffread bombs out with a multi-layer error. Presumably readgeoraster
+    % fixes this, but it's only available from 2020a which I don't have access to.
+    
+    URL_FORMAT1 = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/GridFloat/USGS_NED_1_n%dw%03d_GridFloat.zip';
+    URL_FORMAT2 = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/GridFloat/n%dw%03d.zip';
+    DATAFILE_FORMAT1 = '/usgs_ned_1_n%dw%03d_gridfloat.flt';
+    DATAFILE_FORMAT2 = '/floatn%dw%03d_1.flt';
     
     [lats, longs] = rangeparse(inputs.latRange, inputs.longRange);
     
@@ -35,9 +44,11 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
     region.longCellRange = [longs(1) longs(end)];
     region.fltDataFiles = cell(length(lats), length(longs));
     
-    status = mkdir(inputs.dataDir);
-    if status == 0
-        error('Could not create usgsdata directory.');
+    if ~exist(inputs.dataDir, 'dir')
+        status = mkdir(inputs.dataDir);
+        if status == 0
+            error('Could not create usgsdata directory.');
+        end
     end
     
     for lat = lats
@@ -56,11 +67,15 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
                 % Download the zipped files from the USGS server, trying
                 % both possible formats
                 try
-                    websave(zipFile, sprintf(URL_FORMAT, lat, abs(long)));
+                    websave(zipFile, sprintf(URL_FORMAT1, lat, abs(long)));
                 catch
-                    delete(zipFile);
-                    error('No data available for area n%dw%03d.', ...
-                                  lat, abs(long));
+                    try
+                        websave(zipFile, sprintf(URL_FORMAT2, lat, abs(long)));
+                    catch
+                        delete(zipFile);
+                        error('No data available for area n%dw%03d.', ...
+                                      lat, abs(long));
+                    end
                 end
                 
                 % Extract the zip file
@@ -81,14 +96,17 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
             
             % Copy the path to the raw data file into the appropriate
             % location in the region array
-            dataFile = strcat(unzipDir, sprintf(DATAFILE_FORMAT, lat, abs(long)));
-            if exist(dataFile, 'file')
+            dataFile1 = strcat(unzipDir, sprintf(DATAFILE_FORMAT1, lat, abs(long)));
+            dataFile2 = strcat(unzipDir, sprintf(DATAFILE_FORMAT2, lat, abs(long)));
+            if exist(dataFile1, 'file')
                 region.fltDataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
-                                    abs(long) + 1) = {dataFile};
+                                    abs(long) + 1) = {dataFile1};
+            elseif exist(dataFile2, 'file')
+                region.fltDataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
+                                    abs(long) + 1) = {dataFile2};
             else
                 error('Could not locate gridfloat data in USGS download.');
             end
         end
     end
 end
-
