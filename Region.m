@@ -65,6 +65,8 @@ classdef Region
                     catch
                         error('Unable to read elevation data. Make sure that the mapping toolbox is installed and specified lat/long range lies inside the region.');
                     end
+
+                    e = e(1:RASTER_SIZE, 1:RASTER_SIZE);
                     
                     % Sample the elevation data
                     e = e(1:inputs.sampleFactor:size(e,1), ...
