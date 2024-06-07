@@ -7,12 +7,12 @@ classdef Region
     properties
         latCellRange % The min/max cell top-left corner latitude range
         longCellRange % The min/max cell top-left corner longitude range
-        fltDataFiles % An array of file paths for each cell
+        dataFiles % An array of file paths for each cell
     end
     
     methods
         function [elevData] = readelevation(obj, latRange, longRange, varargin)
-        %READELEVATION Reads ElevationData from fltDataFiles
+        %READELEVATION Reads ElevationData from dataFiles
         %   elevData = READELEVATION() reads the entire data range
         %
         %   elevData = READELEVATION(latRange, longRange) reads all values
@@ -37,12 +37,15 @@ classdef Region
             inputs = p.Results;
             
             % 1 arc-second resolution = 3612 arc-secs per degree (in data file)
-            RASTER_SIZE = 3612;
+            % RASTER_SIZE = 3612;
+            % 1/3rd arc-second resolution = 10812 data points per degree
+            % (for some reason it's a little short of 3612*3=10836)
+            RASTER_SIZE = 10812;
             
             [cellLats, cellLongs] = rangeparse(inputs.latRange, ...
                                                inputs.longRange);
             
-            % The appropriate rows and cols to fetch from fltDataFiles
+            % The appropriate rows and cols to fetch from dataFiles
             dataRows = fliplr(inputs.obj.latCellRange(end) - cellLats + 1);
             dataCols = abs(inputs.obj.longCellRange(1)) - abs(cellLongs) + 1;
             
@@ -61,7 +64,7 @@ classdef Region
                     
                     % Read the data file
                     try
-                        [e, R] = arcgridread(char(inputs.obj.fltDataFiles(i, j)));
+                        [e, R] = readgeoraster(char(inputs.obj.dataFiles(i, j)));
                     catch
                         error('Unable to read elevation data. Make sure that the mapping toolbox is installed and specified lat/long range lies inside the region.');
                     end
@@ -127,4 +130,3 @@ classdef Region
         end
     end
 end
-
