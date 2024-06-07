@@ -2,7 +2,7 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
 %FETCHREGION Retrieves a region of USGS elevation data
 %   Downloads, extracts, and indexes all 1x1 degree latitude/longitude
 %   cells necessary to cover the specified latitude and longitude range
-%   from the USGS database (1/3 arc-second, GridFloat format).
+%   from the USGS database (1/3 arc-second, GeoTiff Format).
 %
 %   region = FETCHREGION(latRange, longRange) downloads and extracts all
 %   cells necessary to cover latRange/longRange and returns a Region object
@@ -21,28 +21,25 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
     p.parse(latRange, longRange, varargin{:});
     inputs = p.Results;
     
-    % URLs for accessing USGS 1 arc-second GridFloat data, root directory here:
-    % https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/1/GridFloat/
+    % The 1 arc-second GeoTiff data is available at this root URL:
+    % https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/1/
     %
-    % There are two URL formats for accessing USGS 1 arc-second GridFloat data, probably due 
-    % to different data sets being published at different times.
+    % And the 1/3rd arc-second data is available at:
+    % https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/13/
     %
-    % 1/3 arc-second data is available in TIFF format here:
-    % https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/13/TIFF/current/
-    % Unfortunately, geotiffread bombs out with a multi-layer error. Presumably readgeoraster
-    % fixes this, but it's only available from 2020a which I don't have access to.
-    
-    URL_FORMAT1 = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/GridFloat/USGS_NED_1_n%dw%03d_GridFloat.zip';
-    URL_FORMAT2 = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/GridFloat/n%dw%03d.zip';
-    DATAFILE_FORMAT1 = '/usgs_ned_1_n%dw%03d_gridfloat.flt';
-    DATAFILE_FORMAT2 = '/floatn%dw%03d_1.flt';
+    % I'm hard coding to the 1/3rd arc-second resolution, which is good for
+    % most of the mainland US. But some parts of Alaska are only available
+    % in 1 arc-second so be aware of that.
+
+    URL_FORMAT = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n%dw%03d/USGS_13_n%dw%03d.tif';
+    DATAFILE_FORMAT = '/n%dw%03d.tif';
     
     [lats, longs] = rangeparse(inputs.latRange, inputs.longRange);
     
     region = Region;
     region.latCellRange = [lats(1) lats(end)];
     region.longCellRange = [longs(1) longs(end)];
-    region.fltDataFiles = cell(length(lats), length(longs));
+    region.dataFiles = cell(length(lats), length(longs));
     
     if ~exist(inputs.dataDir, 'dir')
         status = mkdir(inputs.dataDir);
@@ -56,38 +53,22 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
             if inputs.display
                 fprintf('-----Area n%dw%03d-----\n', lat, abs(long));
             end
-            zipFile = strcat(inputs.dataDir, sprintf('/n%dw%03d.zip', lat, abs(long)));
-            unzipDir = strcat(inputs.dataDir, sprintf('/n%dw%03d', lat, abs(long)));
+            saveFile = strcat(inputs.dataDir, sprintf(DATAFILE_FORMAT, lat, abs(long)));
+            url = sprintf(URL_FORMAT, lat, abs(long), lat, abs(long));
             
-            if ~exist(unzipDir, 'dir')
+            if ~isfile(saveFile)
                 if inputs.display
                     fprintf('Downloading area\n');
                 end
                 
-                % Download the zipped files from the USGS server, trying
-                % both possible formats
                 try
-                    websave(zipFile, sprintf(URL_FORMAT1, lat, abs(long)));
+                    disp(url)
+                    websave(saveFile, url);
                 catch
-                    try
-                        websave(zipFile, sprintf(URL_FORMAT2, lat, abs(long)));
-                    catch
-                        delete(zipFile);
-                        error('No data available for area n%dw%03d.', ...
-                                      lat, abs(long));
-                    end
+                    delete(saveFile);
+                    error('No data available for area n%dw%03d.', ...
+                                  lat, abs(long));
                 end
-                
-                % Extract the zip file
-                try
-                    if inputs.display
-                        fprintf('Extracting area\n');
-                    end
-                    unzip(zipFile, unzipDir);
-                catch
-                    error('Unable to unzip. Probably corrupted data.');
-                end
-                delete(zipFile);
             else
                if inputs.display
                     fprintf('Area already downloaded\n');
@@ -96,17 +77,8 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
             
             % Copy the path to the raw data file into the appropriate
             % location in the region array
-            dataFile1 = strcat(unzipDir, sprintf(DATAFILE_FORMAT1, lat, abs(long)));
-            dataFile2 = strcat(unzipDir, sprintf(DATAFILE_FORMAT2, lat, abs(long)));
-            if exist(dataFile1, 'file')
-                region.fltDataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
-                                    abs(long) + 1) = {dataFile1};
-            elseif exist(dataFile2, 'file')
-                region.fltDataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
-                                    abs(long) + 1) = {dataFile2};
-            else
-                error('Could not locate gridfloat data in USGS download.');
-            end
+            region.dataFiles(lats(end) - lat + 1, abs(longs(1)) - ...
+                             abs(long) + 1) = {saveFile};
         end
     end
 end
