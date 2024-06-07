@@ -3,7 +3,7 @@
   <img src="res/grand_canyon.png" width="450" title="Grand Canyon">
 </p>
 
-An easy-to-use MATLAB library for working with terrain elevation from the USGS in 1 arc-second resolution. Supports automatic download and synthesization of multiple 1x1 degree cells, elevation data sampling, easy conversion from latitude/longitude to cartesian coordinates, and terrain visualization.
+An easy-to-use MATLAB library for working with terrain elevation from the USGS in 1/3rd arc-second resolution. Supports automatic download and synthesization of multiple 1x1 degree cells, elevation data sampling, easy conversion from latitude/longitude to cartesian coordinates, and terrain visualization.
 
 This library works in all of the mainland United States, Hawaii, and most of Alaska. It depends on the MATLAB Mapping Toolbox.
 
@@ -37,7 +37,7 @@ dispelev(jacksonElevData, 'mode', 'cartesian', 'gridLines', 50);
 ```
 
 ### MIT License
-Copyright (c) 2022 Samuel Pfrommer
+Copyright (c) 2024 Samuel Pfrommer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
