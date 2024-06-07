@@ -29,7 +29,8 @@ function [ region ] = fetchregion( latRange, longRange, varargin )
     %
     % I'm hard coding to the 1/3rd arc-second resolution, which is good for
     % most of the mainland US. But some parts of Alaska are only available
-    % in 1 arc-second so be aware of that.
+    % in 1 arc-second so be aware of that. If you want 1 arc-second, just
+    % change the URL and adjust RASTER_SIZE in Region.m
 
     URL_FORMAT = 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n%dw%03d/USGS_13_n%dw%03d.tif';
     DATAFILE_FORMAT = '/n%dw%03d.tif';

@@ -112,6 +112,9 @@ classdef Region
                 end
             end
             
+            % Replace missing heights with NaN
+            elev(elev < -999998) = NaN;
+            
             if inputs.display
                 fprintf('Trimming data to specified range\n');
             end
